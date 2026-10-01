@@ -20,7 +20,7 @@ if (!args.title) {
 
 const env = loadEnv();
 if (!env.YOUGILE_API_KEY || !env.YOUGILE_COLUMN_ID) {
-  console.error('NO_SETUP: ключи YouGile не настроены, запусти scripts/open-setup.sh yougile');
+  console.error('NO_SETUP: ключи YouGile не настроены, запусти scripts/open-setup.sh');
   process.exit(3);
 }
 

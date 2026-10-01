@@ -1,11 +1,12 @@
 #!/bin/bash
 # Открывает отдельное окно Терминала для ввода ключей, ждёт окончания настройки
 # и возвращает фокус в приложение, из которого её запустили.
-#   bash open-setup.sh yougile
+#   bash open-setup.sh            — всё сразу
+#   bash open-setup.sh telegram   — только Telegram
 set -u
 
 DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
-SECTION="${1:?Укажи раздел настройки}"
+SECTION="${1:-all}"
 DONE="$DIR/.setup-done"
 TIMEOUT=600
 
@@ -38,8 +39,8 @@ osascript -e "tell application \"Terminal\" to close (every window whose id is $
 [ -n "$PREV_APP" ] && open -b "$PREV_APP"
 
 if [ "$STATUS" = "0" ]; then
-  echo "Настройка $SECTION завершена, ключи сохранены в .env"
+  echo "Настройка завершена, ключи сохранены в .env"
 else
-  echo "Настройка $SECTION завершилась с ошибкой"
+  echo "Настройка завершилась с ошибкой"
 fi
 exit "$STATUS"

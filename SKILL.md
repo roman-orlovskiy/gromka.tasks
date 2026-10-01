@@ -32,8 +32,9 @@ node ~/.claude/skills/task/scripts/create-task.js --title "…" [--description "
 Если скрипт завершился с кодом 3 (`NO_SETUP`), запусти настройку и после неё повтори задачу:
 
 ```bash
-bash ~/.claude/skills/task/scripts/open-setup.sh yougile
+bash ~/.claude/skills/task/scripts/open-setup.sh
 ```
 
-Настройка открывает отдельное окно Терминала, пользователь вводит данные там.
+Настройка открывает одно отдельное окно Терминала: пользователь вводит там
+ключи YouGile и, если есть, токен Telegram-бота.
 Никогда не проси ключи и пароли в чате и не читай `.env`.
