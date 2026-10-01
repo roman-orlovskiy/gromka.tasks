@@ -9,7 +9,7 @@ SECTION="${1:?Укажи раздел настройки}"
 DONE="$DIR/.setup-done"
 TIMEOUT=600
 
-PREV_APP="$(lsappinfo info -only name "$(lsappinfo front)" | sed -E 's/.*"([^"]+)"$/\1/')"
+PREV_APP="$(lsappinfo info -only bundleid "$(lsappinfo front)" | sed -E 's/.*"([^"]+)"$/\1/')"
 rm -f "$DONE"
 
 WIN_ID="$(osascript <<EOF
@@ -35,7 +35,7 @@ STATUS="$(cat "$DONE")"
 rm -f "$DONE"
 sleep 1
 osascript -e "tell application \"Terminal\" to close (every window whose id is $WIN_ID)" >/dev/null 2>&1
-[ -n "$PREV_APP" ] && open -a "$PREV_APP"
+[ -n "$PREV_APP" ] && open -b "$PREV_APP"
 
 if [ "$STATUS" = "0" ]; then
   echo "Настройка $SECTION завершена, ключи сохранены в .env"
