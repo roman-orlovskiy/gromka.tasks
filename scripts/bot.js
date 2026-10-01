@@ -50,7 +50,7 @@ async function handle(message) {
 }
 
 const me = await telegram('getMe');
-console.log(`Бот @${me.username} запущен, жду сообщения. Остановить: Ctrl+C`);
+console.log(`Бот @${me.username} запущен, жду сообщения`);
 
 let offset = 0;
 for (;;) {
