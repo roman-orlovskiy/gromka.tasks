@@ -27,7 +27,10 @@ fi
 
 nohup node "$DIR/scripts/bot.js" > "$LOG" 2>&1 &
 echo $! > "$PID_FILE"
-sleep 2
+for _ in {1..10}; do
+  [ -s "$LOG" ] && break
+  sleep 1
+done
 if running; then
   head -1 "$LOG"
 else
