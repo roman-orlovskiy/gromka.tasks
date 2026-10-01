@@ -9,6 +9,11 @@
 
 ## Установка
 
+Проще всего попросить Claude Code: «Поставь скилл из github.com/roman-orlovskiy/gromka.tasks».
+Терминал и git для этого не нужны.
+
+Или вручную:
+
 ```bash
 git clone https://github.com/roman-orlovskiy/gromka.tasks ~/.claude/skills/task
 ```
