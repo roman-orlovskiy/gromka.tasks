@@ -2,3 +2,5 @@
 .setup-done
 node_modules/
 .DS_Store
+.bot.pid
+bot.log
