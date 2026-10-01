@@ -1,0 +1,9 @@
+{
+  "name": "gromka-tasks",
+  "private": true,
+  "type": "module",
+  "description": "Скилл task для Claude Code: задачи в YouGile",
+  "engines": {
+    "node": ">=18"
+  }
+}
