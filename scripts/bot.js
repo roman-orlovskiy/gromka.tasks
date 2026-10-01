@@ -15,6 +15,7 @@ if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) {
 
 const OWNER = String(env.TELEGRAM_CHAT_ID);
 const CLAUDE_TIMEOUT = 180_000;
+const CONTROL_WORDS = /^(старт|стоп|статус|start|stop|status)$/i;
 
 function runClaude(text) {
   return new Promise((resolve) => {
@@ -42,6 +43,11 @@ async function handle(message) {
   }
   if (!message.text || message.text === '/start') {
     await telegram('sendMessage', { chat_id: chatId, text: 'Пришли текст задачи, я заведу её в YouGile' });
+    return;
+  }
+  // Команды управления ботом не пускаем в /task, иначе «стоп» выключит самого бота
+  if (CONTROL_WORDS.test(message.text.trim())) {
+    await telegram('sendMessage', { chat_id: chatId, text: 'Запуск и остановка бота: /task старт и /task стоп в Claude Code' });
     return;
   }
   await telegram('sendChatAction', { chat_id: chatId, action: 'typing' });

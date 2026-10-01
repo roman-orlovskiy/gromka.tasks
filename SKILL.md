@@ -1,7 +1,7 @@
 ---
 name: task
 description: Создаёт задачу в YouGile. Используй по команде /task и когда просят завести, создать или добавить задачу. Умеет класть задачу в конкретный проект YouGile.
-argument-hint: <текст задачи>
+argument-hint: <текст задачи> | старт | стоп | статус
 ---
 
 # Задача в YouGile
@@ -30,15 +30,18 @@ node ~/.claude/skills/task/scripts/create-task.js --title "…" [--description "
 ## Telegram-бот
 
 Бот принимает задачи сообщениями в Telegram и отвечает только владельцу.
-На просьбу «запусти бота» или «останови бота»:
+Он работает отдельным процессом и не останавливается при выходе из Claude Code.
 
-```bash
-bash ~/.claude/skills/task/scripts/start-bot.sh        # запустить
-bash ~/.claude/skills/task/scripts/start-bot.sh stop   # остановить
-```
+Если `$ARGUMENTS` целиком одно из слов ниже, это команда управления ботом, а не задача:
 
-Скрипт запускает бота отдельным процессом: он продолжает работать после выхода
-из Claude Code. Ответь пользователю тем, что вывел скрипт.
+| Аргумент | Команда |
+|---|---|
+| `старт`, `start` | `bash ~/.claude/skills/task/scripts/start-bot.sh` |
+| `стоп`, `stop` | `bash ~/.claude/skills/task/scripts/start-bot.sh stop` |
+| `статус`, `status` | `bash ~/.claude/skills/task/scripts/start-bot.sh status` |
+
+То же самое на просьбы «запусти бота», «останови бота», «бот работает?».
+Ответь пользователю тем, что вывел скрипт.
 
 ## Если ключей ещё нет
 
