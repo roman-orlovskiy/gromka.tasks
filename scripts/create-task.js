@@ -4,6 +4,7 @@
 import { randomUUID } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { list, loadEnv, yougile } from './lib.js';
+import { notify } from './notify.js';
 
 const { values: args } = parseArgs({
   options: {
@@ -46,4 +47,10 @@ if (args.description) task.description = args.description;
 if (args.deadline) task.deadline = { deadline: new Date(`${args.deadline}T12:00:00`).getTime() };
 
 await yougile('POST', '/tasks', task);
-console.log(`Задача создана: ${args.title} (${target.where})`);
+const message = `Задача создана: ${args.title} (${target.where})`;
+console.log(message);
+
+// Задачи из бота не дублируем уведомлением: бот и так ответит
+if (!process.env.TASK_NO_NOTIFY) {
+  await notify(message).catch((err) => console.error(`Уведомление не отправлено: ${err.message}`));
+}

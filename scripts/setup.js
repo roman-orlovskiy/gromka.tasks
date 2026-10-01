@@ -4,6 +4,7 @@
 //   node setup.js telegram   — только Telegram
 import { createInterface } from 'node:readline';
 import { saveEnv, yougile } from './lib.js';
+import { telegram } from './notify.js';
 
 function ask(question, hidden = false) {
   return new Promise((resolve) => {
@@ -51,17 +52,6 @@ async function setupYougile() {
   console.log(`\nГотово: задачи будут падать в «${project.title} · ${column.title}»`);
 }
 
-async function telegram(method, token, body) {
-  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body ?? {}),
-  });
-  const data = await res.json();
-  if (!data.ok) throw new Error(`Telegram ${method}: ${data.description}`);
-  return data.result;
-}
-
 async function setupTelegram() {
   console.log('\nНастройка Telegram-бота. Нет бота? Нажми Enter, настроишь позже\n');
   const token = await ask('Токен бота от @BotFather: ', true);
@@ -69,11 +59,11 @@ async function setupTelegram() {
     console.log('Telegram пропущен');
     return;
   }
-  const bot = await telegram('getMe', token);
+  const bot = await telegram('getMe', {}, token);
   console.log(`Бот: @${bot.username}`);
   const chatId = await ask('Твой Telegram ID (узнать у @userinfobot): ');
   await ask(`Открой @${bot.username} в Telegram, нажми «Start» и вернись сюда. Enter, когда готово`);
-  await telegram('sendMessage', token, { chat_id: chatId, text: 'Бот подключён к скиллу task' });
+  await telegram('sendMessage', { chat_id: chatId, text: 'Бот подключён к скиллу task' }, token);
 
   saveEnv({ TELEGRAM_BOT_TOKEN: token, TELEGRAM_CHAT_ID: chatId });
   console.log('Готово: бот прислал тебе проверочное сообщение');
