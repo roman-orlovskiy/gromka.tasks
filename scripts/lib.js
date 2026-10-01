@@ -25,8 +25,20 @@ export function saveEnv(values) {
 
 const API = 'https://yougile.com/api-v2';
 
+// Сетевые сбои повторяем до 3 раз. POST /tasks безопасно повторять благодаря idempotencyKey
+async function fetchWithRetry(url, options, attempts = 3) {
+  for (let i = 1; ; i++) {
+    try {
+      return await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+    } catch (err) {
+      if (i >= attempts) throw err;
+      await new Promise((r) => setTimeout(r, 1000 * i));
+    }
+  }
+}
+
 export async function yougile(method, path, body, key = loadEnv().YOUGILE_API_KEY) {
-  const res = await fetch(API + path, {
+  const res = await fetchWithRetry(API + path, {
     method,
     headers: {
       'Content-Type': 'application/json',

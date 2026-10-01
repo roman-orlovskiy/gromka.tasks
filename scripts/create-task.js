@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Создаёт карточку в YouGile.
 //   node create-task.js --title "…" [--description "…"] [--deadline YYYY-MM-DD] [--project "…"]
+import { randomUUID } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { list, loadEnv, yougile } from './lib.js';
 
@@ -40,7 +41,7 @@ const target = args.project
   ? await firstColumnOf(args.project)
   : { id: env.YOUGILE_COLUMN_ID, where: env.YOUGILE_COLUMN_NAME };
 
-const task = { title: args.title, columnId: target.id };
+const task = { title: args.title, columnId: target.id, idempotencyKey: randomUUID() };
 if (args.description) task.description = args.description;
 if (args.deadline) task.deadline = { deadline: new Date(`${args.deadline}T12:00:00`).getTime() };
 
