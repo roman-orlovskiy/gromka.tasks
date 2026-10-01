@@ -25,6 +25,7 @@ if running; then
   exit 0
 fi
 
+rm -f "$LOG"
 nohup node "$DIR/scripts/bot.js" > "$LOG" 2>&1 &
 echo $! > "$PID_FILE"
 for _ in {1..10}; do
