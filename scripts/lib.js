@@ -75,15 +75,31 @@ export function findAccount(query, data = loadAccounts()) {
 }
 
 const API = 'https://yougile.com/api-v2';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Сетевые сбои повторяем до 3 раз. POST /tasks безопасно повторять благодаря idempotencyKey
+// YouGile пускает не больше 50 запросов в минуту на компанию: держим запас
+const RATE_LIMIT = 45;
+const recent = [];
+async function throttle() {
+  for (;;) {
+    while (recent.length && Date.now() - recent[0] > 60_000) recent.shift();
+    if (recent.length < RATE_LIMIT) break;
+    await sleep(60_000 - (Date.now() - recent[0]) + 100);
+  }
+  recent.push(Date.now());
+}
+
+// Сетевые сбои и 429 повторяем до 3 раз. POST /tasks безопасно повторять благодаря idempotencyKey
 async function fetchWithRetry(url, options, attempts = 3) {
   for (let i = 1; ; i++) {
+    await throttle();
     try {
-      return await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+      const res = await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+      if (res.status !== 429 || i >= attempts) return res;
+      await sleep(15_000 * i);
     } catch (err) {
       if (i >= attempts) throw err;
-      await new Promise((r) => setTimeout(r, 1000 * i));
+      await sleep(1000 * i);
     }
   }
 }
@@ -104,8 +120,14 @@ export async function yougile(method, path, body, key = findAccount()?.apiKey) {
   return data;
 }
 
-// Списки в YouGile приходят как { paging, content: [...] }
+// Списки в YouGile приходят страницами { paging: { next }, content: [...] }: собираем все
 export async function list(path, key) {
   const sep = path.includes('?') ? '&' : '?';
-  return (await yougile('GET', `${path}${sep}limit=1000`, null, key)).content ?? [];
+  const items = [];
+  for (let offset = 0; ; ) {
+    const { content = [], paging } = await yougile('GET', `${path}${sep}limit=1000&offset=${offset}`, null, key);
+    items.push(...content);
+    if (!paging?.next || !content.length) return items;
+    offset += content.length;
+  }
 }
