@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // Интерактивная настройка ключей. Запускается в отдельном окне через open-setup.sh.
 //   node setup.js            — всё сразу: YouGile и Telegram
+//   node setup.js yougile    — только аккаунт YouGile (новый или повторная авторизация)
 //   node setup.js telegram   — только Telegram
 import { createInterface } from 'node:readline';
-import { saveEnv, yougile } from './lib.js';
+import { loadAccounts, saveAccounts, saveEnv, yougile } from './lib.js';
 import { telegram } from './notify.js';
 
 function ask(question, hidden = false) {
@@ -30,7 +31,7 @@ async function choose(title, items, label) {
 
 async function setupYougile() {
   console.log('Настройка YouGile. Пароль нужен один раз, сохранится только API-ключ\n');
-  const login = await ask('Логин (email): ');
+  const login = (await ask('Логин (email): ')).toLowerCase();
   const password = await ask('Пароль: ', true);
 
   const { content: companies = [] } = await yougile('POST', '/auth/companies', { login, password });
@@ -44,12 +45,17 @@ async function setupYougile() {
   const board = await choose('Доска:', await get(`/boards?projectId=${project.id}`), (b) => b.title);
   const column = await choose('Колонка для новых задач:', await get(`/columns?boardId=${board.id}`), (c) => c.title);
 
-  saveEnv({
-    YOUGILE_API_KEY: key,
-    YOUGILE_COLUMN_ID: column.id,
-    YOUGILE_COLUMN_NAME: `${project.title} · ${column.title}`,
-  });
-  console.log(`\nГотово: задачи будут падать в «${project.title} · ${column.title}»`);
+  // Новый или заново авторизованный аккаунт сразу становится активным
+  const data = loadAccounts();
+  data.accounts[login] = {
+    apiKey: key,
+    company: company.name,
+    columnId: column.id,
+    columnName: `${project.title} · ${column.title}`,
+  };
+  data.active = login;
+  saveAccounts(data);
+  console.log(`\nГотово: аккаунт ${login} активен, задачи будут падать в «${project.title} · ${column.title}»`);
 }
 
 async function setupTelegram() {
@@ -74,6 +80,7 @@ const sections = {
     await setupYougile();
     await setupTelegram();
   },
+  yougile: setupYougile,
   telegram: setupTelegram,
 };
 const section = sections[process.argv[2] ?? 'all'];

@@ -2,6 +2,7 @@
 # Открывает отдельное окно Терминала для ввода ключей, ждёт окончания настройки
 # и возвращает фокус в приложение, из которого её запустили.
 #   bash open-setup.sh            — всё сразу
+#   bash open-setup.sh yougile    — добавить или заново авторизовать аккаунт YouGile
 #   bash open-setup.sh telegram   — только Telegram
 set -u
 
@@ -39,7 +40,7 @@ osascript -e "tell application \"Terminal\" to close (every window whose id is $
 [ -n "$PREV_APP" ] && open -b "$PREV_APP"
 
 if [ "$STATUS" = "0" ]; then
-  echo "Настройка завершена, ключи сохранены в .env"
+  echo "Настройка завершена, ключи сохранены"
 else
   echo "Настройка завершилась с ошибкой"
 fi
