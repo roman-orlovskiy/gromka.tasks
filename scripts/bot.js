@@ -21,7 +21,7 @@ function runClaude(text) {
   return new Promise((resolve) => {
     const child = spawn('claude', ['-p', `/task ${text}`, '--allowedTools', 'Bash(node:*)'], {
       cwd: homedir(),
-      env: { ...process.env, TASK_NO_NOTIFY: '1' },
+      env: { ...process.env, TASK_NO_NOTIFY: '1', TASK_FROM_BOT: '1' },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let out = '';

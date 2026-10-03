@@ -131,3 +131,47 @@ export async function list(path, key) {
     offset += content.length;
   }
 }
+
+const has = (title, needle) => title.toLowerCase().includes(needle.toLowerCase());
+
+// Чаты по запросу { id, chat, task, board, project }: [{ id, title }]. У задачи ID чата совпадает с ID задачи
+export async function findChats(query, key) {
+  const get = (path) => list(path, key);
+
+  if (query.id) {
+    const id = query.id.match(/[0-9a-f-]{12,}$/i)?.[0]?.toLowerCase();
+    if (!id) throw new Error(`Не понял ID чата: ${query.id}`);
+    const group = (await get('/group-chats')).filter((c) => c.id.endsWith(id));
+    if (group.length) return group.map((c) => ({ id: c.id, title: `Чат «${c.title}»` }));
+    const tasks = (await get('/tasks')).filter((t) => t.id.endsWith(id));
+    return tasks.map((t) => ({ id: t.id, title: `Задача «${t.title}»` }));
+  }
+  if (query.chat) {
+    const chats = (await get('/group-chats')).filter((c) => has(c.title, query.chat));
+    return chats.map((c) => ({ id: c.id, title: `Чат «${c.title}»` }));
+  }
+
+  const projects = (await get('/projects')).filter((p) => !query.project || has(p.title, query.project));
+  const columns = [];
+  for (const project of projects) {
+    const boards = (await get(`/boards?projectId=${project.id}`)).filter((b) => !query.board || has(b.title, query.board));
+    for (const board of boards) {
+      for (const column of await get(`/columns?boardId=${board.id}`)) {
+        columns.push({ ...column, where: `${board.title} · ${column.title}` });
+      }
+    }
+  }
+
+  const chats = [];
+  for (const column of columns) {
+    const search = query.task ? `&title=${encodeURIComponent(query.task)}` : '';
+    for (const task of await get(`/task-list?columnId=${column.id}${search}`)) {
+      const status = [task.completed && 'выполнена', task.archived && 'в архиве'].filter(Boolean);
+      chats.push({
+        id: task.id,
+        title: `${column.where} · «${task.title}»${status.length ? ` [${status.join(', ')}]` : ''}`,
+      });
+    }
+  }
+  return chats;
+}
