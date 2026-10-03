@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Пишет сообщение в чат YouGile: групповой или чат задачи.
+// Упоминания API ставит только текстом, уведомление по ним не приходит.
 //   node send-message.js --chat "B2B" --mention "Ильдар" --text "…" --dry-run   — показать, куда и что уйдёт
 //   node send-message.js --chat "B2B" --mention "Ильдар" --text "…"             — отправить
 // Чат выбирается как в chats.js: --chat, --task, --id; найтись должен ровно один.
@@ -70,26 +71,11 @@ try {
     process.exit(0);
   }
 
-  const message = { text, textHtml: toHtml(text), label: '' };
-  const chunks = mentions.map((m) => ({ type: 'user', replacement: m.tag, data: { userId: m.user.id } }));
-  let sent;
-  try {
-    sent = await yougile('POST', `/chats/${chat.id}/messages`, chunks.length ? { ...message, properties: { params: { chunks } } } : message, key);
-  } catch (err) {
-    // Публичный API может не принять упоминания: тогда отправляем обычным текстом
-    if (!chunks.length || !/HTTP 400/.test(err.message)) throw err;
-    await yougile('POST', `/chats/${chat.id}/messages`, message, key);
-    console.log('\nОтправлено, упоминание ушло обычным текстом, без уведомления');
-    process.exit(0);
-  }
-
-  // Лишние поля YouGile может молча отбросить: проверяем, сохранилось ли упоминание
-  if (chunks.length && sent?.id) {
-    const saved = await yougile('GET', `/chats/${chat.id}/messages/${sent.id}`, null, key).catch(() => null);
-    const kept = saved?.properties?.params?.chunks?.length;
-    console.log(kept ? '\nОтправлено, упоминание с уведомлением' : '\nОтправлено, но упоминание сохранилось обычным текстом');
-  } else {
-    console.log('\nОтправлено');
+  // Публичный API принимает только текст: упоминание остаётся строкой «@Имя» без уведомления
+  await yougile('POST', `/chats/${chat.id}/messages`, { text, textHtml: toHtml(text), label: '' }, key);
+  console.log('\nОтправлено');
+  if (mentions.length) {
+    console.log(`Упоминание стоит текстом: чтобы пришло уведомление, в YouGile поставь заново ${mentions.map((m) => m.tag).join(', ')} в первой строке`);
   }
 } catch (err) {
   console.error(err.message);

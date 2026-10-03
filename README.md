@@ -60,7 +60,7 @@ scripts/
   move-task.js        перенос задачи в другую колонку
   accounts.js         список и переключение аккаунтов YouGile
   chats.js            чтение переписки в чатах задач и групповых чатах
-  send-message.js     сообщение в чат с упоминаниями, из Telegram не отправляет
+  send-message.js     сообщение в чат, упоминание текстом; из Telegram не отправляет
   api.js              любой GET-запрос к YouGile API
   notify.js           сообщения от бота
   bot.js              бот: сообщение → claude -p "/task …"
